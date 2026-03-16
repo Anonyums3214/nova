@@ -15,7 +15,10 @@ restart_flags = {}
 filters = {}
 durations = {}
 
-FFMPEG_PATH = r"C:\Users\hp\Downloads\ffmpeg\bin\ffmpeg.exe"
+# ==========================
+# FFMPEG path for Railway/Linux
+# ==========================
+FFMPEG_PATH = "ffmpeg"
 
 YDL_OPTIONS = {
     "format": "bestaudio/best",
@@ -162,6 +165,10 @@ class Music(commands.Cog):
 
         before_opts = f"-ss {start} -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
 
+        # ---- FIXED: Make sure the URL is directly playable ----
+        if "youtube.com" in url or "youtu.be" in url:
+            url = url
+
         source = discord.PCMVolumeTransformer(
             discord.FFmpegPCMAudio(
                 url,
@@ -258,7 +265,7 @@ class Music(commands.Cog):
         with yt_dlp.YoutubeDL(YDL_OPTIONS) as ydl:
             info = ydl.extract_info(f"ytsearch:{search}", download=False)["entries"][0]
 
-        url = info["url"]
+        url = info.get("url") or info.get("webpage_url")
         title = info["title"]
         thumb = info["thumbnail"]
         duration = info["duration"]
