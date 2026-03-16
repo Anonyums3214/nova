@@ -82,7 +82,7 @@ async def on_ready():
 async def main():
     async with bot:
         try:
-            await bot.load_extension("music")
+            await bot.load_extension("music")  # Make sure music.py is in the same folder or adjust path
         except Exception as e:
             print(f"Failed to load music cog: {e}")
         await bot.start(TOKEN)
