@@ -5,32 +5,30 @@ import os
 import sys
 
 # ==========================
-# Load configuration from environment variables
+# FIXED Environment variable loading
 # ==========================
-TOKEN = os.getenv("TOKEN")
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
-PREFIX = os.getenv("PREFIX", "+")  # Default prefix is "+"
-
-# ==========================
-# Debug check to confirm env variables
-# ==========================
-if not TOKEN:
+try:
+    TOKEN = str(os.environ["TOKEN"])  # Raises KeyError if missing
+except KeyError:
     print("ERROR: TOKEN environment variable not set!")
     sys.exit(1)
 
-print(f"TOKEN loaded: {'Yes' if TOKEN else 'No'}")
+YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY", "")
+PREFIX = os.environ.get("PREFIX", "+")
+
+print("✅ TOKEN loaded successfully")
+print(f"PREFIX: {PREFIX}")
 print(f"YOUTUBE_API_KEY loaded: {'Yes' if YOUTUBE_API_KEY else 'No'}")
-print(f"PREFIX loaded: {PREFIX}")
 
 # ==========================
-# Minimal intents
+# Intents
 # ==========================
 intents = discord.Intents.default()
 intents.message_content = True
 intents.voice_states = True
 
 # ==========================
-# Create bot
+# Bot setup
 # ==========================
 bot = commands.Bot(
     command_prefix=PREFIX,
@@ -70,7 +68,7 @@ async def rotate_status():
         await asyncio.sleep(10)
 
 # ==========================
-# Bot ready event
+# Ready event
 # ==========================
 @bot.event
 async def on_ready():
@@ -79,14 +77,18 @@ async def on_ready():
         rotate_status.start()
 
 # ==========================
-# Async startup
+# Async main
 # ==========================
 async def main():
     async with bot:
-        await bot.load_extension("music")  # make sure music.py exists
+        try:
+            await bot.load_extension("music")
+        except Exception as e:
+            print(f"Failed to load music cog: {e}")
         await bot.start(TOKEN)
 
 # ==========================
-# Run bot
+# Run
 # ==========================
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())
