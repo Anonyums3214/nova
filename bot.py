@@ -2,33 +2,52 @@ import discord
 from discord.ext import commands, tasks
 import asyncio
 import os
+import sys
 
+# ==========================
 # Load configuration from environment variables
+# ==========================
 TOKEN = os.getenv("TOKEN")
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
-PREFIX = os.getenv("PREFIX", "+")  # Default prefix is "!"
+PREFIX = os.getenv("PREFIX", "+")  # Default prefix is "+"
 
+# ==========================
+# Debug check to confirm env variables
+# ==========================
+if not TOKEN:
+    print("ERROR: TOKEN environment variable not set!")
+    sys.exit(1)
+
+print(f"TOKEN loaded: {'Yes' if TOKEN else 'No'}")
+print(f"YOUTUBE_API_KEY loaded: {'Yes' if YOUTUBE_API_KEY else 'No'}")
+print(f"PREFIX loaded: {PREFIX}")
+
+# ==========================
 # Minimal intents
+# ==========================
 intents = discord.Intents.default()
 intents.message_content = True
 intents.voice_states = True
 
+# ==========================
 # Create bot
+# ==========================
 bot = commands.Bot(
     command_prefix=PREFIX,
     intents=intents,
     help_command=None
 )
 
+# ==========================
 # Rotating statuses
+# ==========================
 statuses = [
     ("playing", "🎵 Music"),
     ("playing", "⚡ Powered by NOVA"),
-    ("listening", "+play <song>"),
+    ("listening", f"{PREFIX}play <song>"),
     ("watching", "🌍 Servers")
 ]
 
-# Rotating status task
 @tasks.loop(seconds=40)
 async def rotate_status():
     for status_type, text in statuses:
@@ -50,18 +69,24 @@ async def rotate_status():
         )
         await asyncio.sleep(10)
 
+# ==========================
 # Bot ready event
+# ==========================
 @bot.event
 async def on_ready():
     print(f"NOVA Music Bot Online as {bot.user}")
     if not rotate_status.is_running():
         rotate_status.start()
 
+# ==========================
 # Async startup
+# ==========================
 async def main():
     async with bot:
-        await bot.load_extension("music")
+        await bot.load_extension("music")  # make sure music.py exists
         await bot.start(TOKEN)
 
+# ==========================
 # Run bot
+# ==========================
 asyncio.run(main())
