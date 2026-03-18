@@ -1,79 +1,63 @@
 import discord
 from discord.ext import commands, tasks
-import json  # kept as you had
 import asyncio
-import os   # ← ADDED (only this)
+import os
 
-# Load configuration from Environment Variables (secure for GitHub + Railway)
-# Your original config.json token is now in Railway Variables → never commit it!
+# ────────────────────────────── Config from env (Railway) ──────────────────────────────
 config = {
     "token": os.getenv("TOKEN"),
-    "youtube_api": os.getenv("YOUTUBE_API"),
+    "youtube_api": os.getenv("YOUTUBE_API"),  # not used yet, but kept
     "prefix": os.getenv("PREFIX", "+")
 }
 
-# Minimal intents
-intents = discord.Intents.default()
-intents.message_content = True
-intents.voice_states = True
+if not config["token"]:
+    print("ERROR: TOKEN environment variable is missing!")
+    exit(1)
 
-# Create bot
+# Intents – very important in 2025
+intents = discord.Intents.default()
+intents.message_content = True      # required for reading messages
+intents.voice_states = True
+intents.members = True              # helps with voice state tracking
+
 bot = commands.Bot(
     command_prefix=config["prefix"],
     intents=intents,
     help_command=None
 )
 
-# Rotating statuses
+# Rotating status
 statuses = [
     ("playing", "🎵 Music"),
     ("playing", "⚡ Powered by NOVA"),
-    ("listening", "+play <song>"),
+    ("listening", f"{config['prefix']}play <song>"),
     ("watching", "🌍 Servers")
 ]
 
-# Rotating status task
 @tasks.loop(seconds=40)
 async def rotate_status():
-
     for status_type, text in statuses:
-
         if status_type == "playing":
             activity = discord.Game(name=text)
-
         elif status_type == "listening":
-            activity = discord.Activity(
-                type=discord.ActivityType.listening,
-                name=text
-            )
-
+            activity = discord.Activity(type=discord.ActivityType.listening, name=text)
         elif status_type == "watching":
-            activity = discord.Activity(
-                type=discord.ActivityType.watching,
-                name=text
-            )
+            activity = discord.Activity(type=discord.ActivityType.watching, name=text)
 
-        await bot.change_presence(
-            status=discord.Status.dnd,
-            activity=activity
-        )
-
+        await bot.change_presence(status=discord.Status.dnd, activity=activity)
         await asyncio.sleep(10)
 
-# Bot ready event
 @bot.event
 async def on_ready():
-
-    print(f"NOVA Music Bot Online as {bot.user}")
-
+    print(f"Logged in as {bot.user} (ID: {bot.user.id})")
+    print("------")
     if not rotate_status.is_running():
         rotate_status.start()
 
-# Async startup
 async def main():
     async with bot:
         await bot.load_extension("music")
         await bot.start(config["token"])
 
-# Run bot
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())
