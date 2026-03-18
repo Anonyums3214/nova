@@ -21,7 +21,10 @@ FFMPEG_PATH = os.getenv("FFMPEG_PATH", r"C:\Users\hp\Downloads\ffmpeg\bin\ffmpeg
 
 YDL_OPTIONS = {
     "format": "bestaudio/best",
-    "quiet": True
+    "quiet": True,
+    "cookiefile": "cookies.txt",   # ✅ IMPORTANT
+    "nocheckcertificate": True,
+    "ignoreerrors": False
 }
 
 # ────────────────────────────────────────────────
