@@ -1,2 +1,8 @@
+# nixpacks.toml
+
 [phases.setup]
 aptPkgs = ['ffmpeg', 'libopus0', 'libopus-dev']
+
+[phases.build]
+dependsOn = ['setup']
+cmds = ['pip install --no-cache-dir -r requirements.txt']
