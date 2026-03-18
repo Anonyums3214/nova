@@ -22,9 +22,11 @@ FFMPEG_PATH = os.getenv("FFMPEG_PATH", r"C:\Users\hp\Downloads\ffmpeg\bin\ffmpeg
 YDL_OPTIONS = {
     "format": "bestaudio/best",
     "quiet": True,
-    "cookiefile": "cookies.txt",   # ✅ IMPORTANT
+    "cookiefile": os.path.join(os.getcwd(), "cookies.txt"),  # ✅ FIXED PATH
     "nocheckcertificate": True,
-    "ignoreerrors": False
+    "ignoreerrors": False,
+    "default_search": "ytsearch",
+    "source_address": "0.0.0.0"
 }
 
 # ────────────────────────────────────────────────
@@ -274,7 +276,19 @@ class Music(commands.Cog):
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(f"ytsearch:{search}", download=False)["entries"][0]
 
-            url = info["url"]
+
+            formats = info.get("formats", [])
+            audio_url = None
+
+            for f in formats:
+                if f.get("acodec") != "none":
+                    audio_url = f.get("url")
+                break
+
+            if not audio_url:
+                raise Exception("No audio stream found")
+
+            url = audio_url
             title = info["title"]
             thumb = info["thumbnail"]
             duration = info["duration"]
